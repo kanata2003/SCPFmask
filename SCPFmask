@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+
+#------------------------------------------------------------------------------------#
+# SCPFmask ver0.8                                                                    #
+#                                                                                    #
+# This tool is one of the special accommodation protocols to prevent accommodation   #
+# violations due to arbitrary anomalies.                                             #
+# 本ツールは任意のアノマリーによる収容違反を防ぐための特別収容プロトコルのひとつです #
+# Protected or controlled by the SCP Foundation.                                     #
+# SCP財団により保護または管理されています                                            #
+#------------------------------------------------------------------------------------#
+
+LANG=C.UTF-8
+M="█"
+
+help(){
+  echo "ex) echo abcABCdef|$0 -w AB"
+  echo "ex) echo abcABCdef|$0 -c 4-5"
+  echo "ex) $0 -w AB [file]"
+  echo "ex) $0 -c 4-5 [file]"
+  exit "$1"
+}
+
+version(){
+  cat $0|grep ver|head -1|tr -d '#'
+  exit 0
+}
+
+replacement_word(){
+  local c mask
+  for c in $(echo $1|grep -o .)
+  do
+    if echo -n $c |grep -q -P '[\x00-\x7F]' >/dev/null
+    then
+      mask="$mask$M"
+    else
+      mask="$mask$M$M"
+    fi
+  done
+  sed "s/$1/$mask/g"
+}
+
+replacement_range(){
+  local st ed mask maskedword zws
+  zws=$'\ufeff'
+  st=$(echo $1|cut -d- -f1)
+  ed=$(echo $1|cut -d- -f2)
+  temp="$(cat -)"
+  maskedword=$(echo "$temp"|sed -z "s/\n/$zws/g"|awk -v n=$st -v m=$ed '{print substr($0,n,m-n+1)}')
+  for c in $(echo $maskedword|grep -o .)
+  do
+    if echo -n $c |grep -q -P '[\x00-\x7F]' >/dev/null
+    then
+      mask="$mask$M"
+    else
+      mask="$mask$M$M"
+    fi
+  done
+
+  echo "$temp"|sed -z "s/\n/$zws/g"|awk -v n=$st -v m=$ed -v mask=$mask '{print substr($0,1,n-1) mask substr($0,m+1)}'|sed "s/$zws/\n/g"|sed '$d'
+}
+
+main(){
+  args=$(getopt -o w:c:hv -- "$@") || help 1 "Failed to parse args."
+  eval "set -- $args"
+  
+  local W C status filepath
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -w) W="$2" ; shift 2 ; filepath=$(echo $@|awk '$0=$NF');;
+      -c) C="$2" ; shift 2 ;;
+      -h) help 0 ; break   ;;
+      -v) version; break   ;;
+      --) shift  ; break   ;;
+    esac
+  done
+  
+  if {
+       { [ -z "$W" ] && [ -z "$C" ];}
+     }
+  then
+    help 1 'Specify either -w or -c.'
+  fi
+  
+  # Replacement
+  if [ -p /dev/stdin ]
+  then
+    # From pipe
+    if [ -z "$W" ]
+    then
+      replacement_range $C < /dev/stdin
+    else
+      replacement_word $W|replacement_range $C < /dev/stdin
+    fi
+  else
+    # From file
+    if [ -r $filepath ]; then
+      cat $filepath|replacement_word $W|replacement_range $C
+    else
+      help 1 'Can not read this file.'
+    fi
+  fi
+  
+}
+
+main "$@"
+exit "$?"
