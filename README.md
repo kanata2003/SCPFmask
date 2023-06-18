@@ -17,9 +17,9 @@ Ubuntu 22.04.2 LTSでの正常動作を確認しています。
 ## Usage
 
 ```bash
-$ ./SCPFmask -w メロス melos.txt          # 特定用語のマスク
+$ ./SCPFmask -w メロス melos.txt # 特定用語のマスク
 ████████は激怒した。必ず、かの邪智暴虐の王を除かなければならぬと決意した。██████には政治がわからぬ。██████は、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。
-$ cat melos.txt |./SCPFmask -c 1-8        # 文字範囲指定によるマスク
+$ cat melos.txt |./SCPFmask -c 1-8 # 文字範囲指定によるマスク
 ████████████████。必ず、かの邪智暴虐の王を除かなければならぬと決意した。メロスには政治がわからぬ。メロスは、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。
 $ ./SCPFmask -w メロス -c 18-21 melos.txt # 両方指定可
 ██████は激怒した。必ず、かの████████の王を除かなければならぬと決意した。██████には政治がわからぬ。██████は、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。
@@ -39,5 +39,3 @@ $ cat melos.txt |./SCPFmask -c 1-8|./SCPFmask -w メロス|./SCPFmask -w 敏感 
 # SCPF
 
 [SCP財団](http://scp-jp.wikidot.com/)
-
-[A painter and a black cat - SCPmask](https://raintrees.net/projects/a-painter-and-a-black-cat/wiki/SCPFmask)
